@@ -23,20 +23,28 @@ class AutoEncoder(nn.Module):
         super().__init__()
         
         self.encoder = nn.Sequential(
-            DenoisingBlock(1, 16, 3, stride=2),  # 64 -> 32
-            DenoisingBlock(16, 32, 3, stride=2), # 32 -> 16
-            DenoisingBlock(32, 32, 3, stride=2), # 16 -> 8
-            DenoisingBlock(32, 32, 3, stride=2), # 8 -> 4
-            DenoisingBlock(32, 32, 3, stride=1).conv,
-            DenoisingBlock(32, 32, 3, stride=1).norm
+            DenoisingBlock(1, 16, 3, stride=2),  # 64x64x1 -> 32x32x16
+            DenoisingBlock(16, 16, 3),           
+            DenoisingBlock(16, 32, 3, stride=2), # 32x32x16 -> 16x16x32
+            DenoisingBlock(32, 32, 3),
+            DenoisingBlock(32, 32, 3, stride=2), # 16x16x32 -> 8x8x32
+            DenoisingBlock(32, 32, 3),
+            DenoisingBlock(32, 64, 3, stride=2), # 8x8x32 -> 4x4x64
+            DenoisingBlock(64, 64, 3),
+            DenoisingBlock(64, 64, 3).conv,
+            DenoisingBlock(64, 64, 3).norm
         )
         
         self.decoder = nn.Sequential(
-            DenoisingBlock(32, 32, 3, upsample=True), # 4 -> 8
-            DenoisingBlock(32, 32, 3, upsample=True), # 8 -> 16
-            DenoisingBlock(32, 32, 3, upsample=True), # 16 -> 32
-            DenoisingBlock(32, 16, 3, upsample=True), # 32 -> 64
-            DenoisingBlock(16, 1, 3).conv,
+            DenoisingBlock(64, 64, 3),
+            DenoisingBlock(64, 32, 3, upsample=True), # 4x4x64 -> 8x8x32
+            DenoisingBlock(32, 32, 3),
+            DenoisingBlock(32, 32, 3, upsample=True), # 8x8x32 -> 16x16x32
+            DenoisingBlock(32, 32, 3), 
+            DenoisingBlock(32, 32, 3, upsample=True), # 16x16x32 -> 32x32x32
+            DenoisingBlock(32, 32, 3),
+            DenoisingBlock(32, 16, 3, upsample=True), # 32x32x32 -> 64x64x16
+            DenoisingBlock(16, 1, 3).conv,            # 64x64x16 -> 64x64x1
         )
         
     def forward(self, x):
