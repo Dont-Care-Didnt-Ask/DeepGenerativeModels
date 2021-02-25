@@ -74,6 +74,31 @@ def calculate_activation_statistics(dataloader, model, classifier):
     # note2: не забывайте делать .detach()
     # YOUR CODE
 
+    activations_for_real = []
+    activations_for_generated = []
+
+    for image, label in dataloader:
+        image = image.to(device)
+        label = label.to(device)
+
+        activations = classifier.get_activations(image)
+        activations_for_real.append(activations.detach().cpu())
+        
+        out = model(image)
+        activations = classifier.get_activations(out)
+        activations_for_generated.append(activations.detach().cpu())
+
+    activations_for_real = torch.cat(activations_for_real, dim = 0).numpy()
+    activations_for_generated = torch.cat(activations_for_generated, dim = 0).numpy()
+
+    m1 = np.mean(activations_for_generated, axis = 0)
+    m2 = np.mean(activations_for_real, axis = 0)
+    s1 = np.cov(activations_for_generated, rowvar = False)
+    s2 = np.cov(activations_for_real, rowvar = False)
+
+    return m1, s1, m2, s2
+
+
 @torch.no_grad()
 def calculate_fid(dataloader, model, classifier):
     
