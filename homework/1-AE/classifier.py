@@ -29,20 +29,20 @@ class Classifier(nn.Module):
             ConvBlock(32, 64, 3, stride = 2), # 32x32x32 -> 16x16x64
             ConvBlock(64, 64, 3),
             ConvBlock(64, 128, 3, stride = 2), # 16x16x64 -> 8x8x128
-            ConvBlock(128, 128, 3),
-            ConvBlock(128, 128, 3, stride = 2), # 8x8x128 -> 4x4x128
+            ConvBlock(128, 128, 3)
         )
-        self.fc1 = nn.Linear(4 * 4 * 128, 256)
-        self.fc2 = nn.Linear(256, 10)
+        self.fc1 = nn.Linear(8 * 8 * 128, 2048)
+        self.fc2 = nn.Linear(2048, n_classes)
         
     def forward(self, x):
         x = self.feature_extractor(x)
-        x = x.view(-1, 4 * 4 * 128)
+        x = x.view(-1, 8 * 8 * 128)
         x = self.fc1(x)
         x = nn.Dropout(0.2)(x)
         x = self.fc2(x)
         return x
     
     def get_activations(self, x):
-        x = self.feature_extractor(x)
-        return self.fc1(x), self.fc2(x)
+        x = self.feature_extractor(x).view(-1, 8 * 8 * 128)
+        inner_activations = self.fc1(x)
+        return inner_activations
