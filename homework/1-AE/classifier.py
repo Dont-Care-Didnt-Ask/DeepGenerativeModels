@@ -32,17 +32,18 @@ class Classifier(nn.Module):
             ConvBlock(128, 128, 3)
         )
         self.fc1 = nn.Linear(8 * 8 * 128, 2048)
+        self.act = nn.LeakyReLU(0.2)
+        self.drop = nn.Dropout(0.2)
         self.fc2 = nn.Linear(2048, n_classes)
         
     def forward(self, x):
         x = self.feature_extractor(x)
         x = x.view(-1, 8 * 8 * 128)
-        x = self.fc1(x)
-        x = nn.Dropout(0.2)(x)
-        x = self.fc2(x)
+        x = self.act(self.fc1(x))
+        x = self.fc2(self.drop(x))
         return x
     
     def get_activations(self, x):
         x = self.feature_extractor(x).view(-1, 8 * 8 * 128)
-        inner_activations = self.fc1(x)
+        inner_activations = self.act(self.fc1(x))
         return inner_activations

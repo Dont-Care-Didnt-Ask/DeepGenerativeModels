@@ -9,7 +9,7 @@ class DenoisingBlock(nn.Module):
         self.conv = nn.Conv2d(in_features, out_features, kernel, stride=stride, padding=(kernel-1)//2, bias=bias)
         self.norm = nn.BatchNorm2d(out_features)
         self.act = nn.LeakyReLU(0.2)
-        self.dropout = nn.Dropout(0.3)
+        self.dropout = nn.Dropout(0.2)
         
     def forward(self, x):
         if self.upsample:
@@ -24,7 +24,7 @@ class AutoEncoder(nn.Module):
         
         self.encoder = nn.Sequential(
             DenoisingBlock(1, 16, 3, stride=2),  # 64x64x1 -> 32x32x16
-            DenoisingBlock(16, 16, 3),           
+            DenoisingBlock(16, 16, 3),
             DenoisingBlock(16, 32, 3, stride=2), # 32x32x16 -> 16x16x32
             DenoisingBlock(32, 32, 3),
             DenoisingBlock(32, 32, 3, stride=2), # 16x16x32 -> 8x8x32
@@ -40,7 +40,7 @@ class AutoEncoder(nn.Module):
             DenoisingBlock(64, 32, 3, upsample=True), # 4x4x64 -> 8x8x32
             DenoisingBlock(32, 32, 3),
             DenoisingBlock(32, 32, 3, upsample=True), # 8x8x32 -> 16x16x32
-            DenoisingBlock(32, 32, 3), 
+            DenoisingBlock(32, 32, 3),
             DenoisingBlock(32, 32, 3, upsample=True), # 16x16x32 -> 32x32x32
             DenoisingBlock(32, 32, 3),
             DenoisingBlock(32, 16, 3, upsample=True), # 32x32x32 -> 64x64x16
